@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useParams, Link, useNavigate } from "react-router-dom"
-import { jobsApi, applicationsApi, type Job } from "@/api/jobs"
+import { jobsApi, applicationsApi, uploadsApi, type Job } from "@/api/jobs"
+import { usersApi } from "@/api/users"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import {
@@ -50,34 +51,104 @@ function ApplyModal({
 }: {
   jobTitle: string
   onClose: () => void
-  onSubmit: (coverLetter: string) => void
+  onSubmit: (coverLetter: string, resumeFile: File | null, defaultResumeUrl?: string | null) => void
   isLoading: boolean
 }) {
   const [coverLetter, setCoverLetter] = useState("")
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [defaultResumeUrl, setDefaultResumeUrl] = useState<string | null>(null)
+  const [useDefaultResume, setUseDefaultResume] = useState(false)
+  const { token } = useAuth()
+
+  useEffect(() => {
+    if (token) {
+      usersApi.getMyProfile(token).then((user) => {
+        if (user.profile?.default_resume_url) {
+          setDefaultResumeUrl(user.profile.default_resume_url)
+        }
+      }).catch(() => {})
+    }
+  }, [token])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-card border rounded-2xl p-6 w-full max-w-lg shadow-2xl">
-        <h2 className="text-xl font-bold mb-1">Apply for this position</h2>
-        <p className="text-muted-foreground text-sm mb-5">{jobTitle}</p>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div 
+        className="border shadow-2xl rounded-2xl p-6 sm:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto relative"
+        style={{ backgroundColor: "#ffffff", color: "#111827" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-2xl font-bold mb-1" style={{ color: "#111827" }}>Apply for this position</h2>
+        <p className="mb-6" style={{ color: "#6b7280" }}>{jobTitle}</p>
 
-        <label className="block text-sm font-medium mb-2">
-          Cover Letter <span className="text-muted-foreground font-normal">(optional)</span>
-        </label>
-        <textarea
-          value={coverLetter}
-          onChange={(e) => setCoverLetter(e.target.value)}
-          placeholder="Tell the employer why you're a great fit for this role..."
-          className="w-full h-36 px-3 py-2.5 rounded-xl border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-muted-foreground"
-        />
+        <div className="space-y-5">
+          <div>
+            <label className="block text-sm font-semibold mb-2" style={{ color: "#111827" }}>
+              Resume (PDF) <span className="text-red-500">*</span>
+            </label>
+            
+            {defaultResumeUrl && (
+              <div className="mb-3 p-3 border rounded-xl" style={{ backgroundColor: "#f9fafb" }}>
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium" style={{ color: "#374151" }}>
+                  <input 
+                    type="checkbox" 
+                    checked={useDefaultResume}
+                    onChange={(e) => setUseDefaultResume(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  Use my default profile resume
+                </label>
+              </div>
+            )}
 
-        <div className="flex gap-3 mt-5">
-          <Button variant="outline" className="flex-1" onClick={onClose} disabled={isLoading}>
+            {!useDefaultResume && (
+              <input 
+                type="file" 
+                accept=".pdf"
+                onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2" style={{ color: "#111827" }}>
+              Cover Letter <span style={{ color: "#9ca3af", fontWeight: 400 }}>(optional)</span>
+            </label>
+            <textarea
+              value={coverLetter}
+              onChange={(e) => setCoverLetter(e.target.value)}
+              placeholder="Tell the employer why you're a great fit for this role..."
+              className="w-full h-40 px-4 py-3 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{ backgroundColor: "#f9fafb", border: "1px solid #e5e7eb", color: "#111827" }}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col-reverse sm:flex-row gap-3 mt-8">
+          <button 
+            type="button"
+            className="sm:w-1/3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ backgroundColor: "#f3f4f6", color: "#374151", border: "1px solid #e5e7eb" }}
+            onClick={onClose} 
+            disabled={isLoading}
+          >
             Cancel
-          </Button>
-          <Button className="flex-1" onClick={() => onSubmit(coverLetter)} disabled={isLoading}>
-            {isLoading ? "Submitting..." : "Submit Application"}
-          </Button>
+          </button>
+          <button 
+            type="button"
+            className="sm:w-2/3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            style={{ backgroundColor: "#2563eb", color: "#ffffff", border: "none" }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#1d4ed8")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#2563eb")}
+            onClick={() => onSubmit(coverLetter, useDefaultResume ? null : resumeFile, useDefaultResume ? defaultResumeUrl : undefined)} 
+            disabled={isLoading || (!resumeFile && !useDefaultResume)}
+          >
+            {isLoading ? "Submitting Application..." : "Submit Application"}
+          </button>
         </div>
       </div>
     </div>
@@ -107,12 +178,17 @@ export default function JobDetail() {
       .finally(() => setIsLoading(false))
   }, [id])
 
-  const handleApply = async (coverLetter: string) => {
+  const handleApply = async (coverLetter: string, resumeFile: File | null, defaultUrl?: string | null) => {
     if (!token || !id) return
     setIsApplying(true)
     setApplyError("")
     try {
-      await applicationsApi.apply(id, { cover_letter: coverLetter }, token)
+      let resume_url = defaultUrl;
+      if (resumeFile) {
+         const { url } = await uploadsApi.upload(resumeFile, token)
+         resume_url = url;
+      }
+      await applicationsApi.apply(id, { cover_letter: coverLetter, resume_url }, token)
       setApplied(true)
       setShowApplyModal(false)
     } catch (e: any) {

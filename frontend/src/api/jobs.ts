@@ -73,6 +73,20 @@ export interface ApplicationWithJob extends Application {
   job: JobListItem;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ApplicationWithStudent extends Application {
+  student: User;
+}
+
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 async function apiFetch<T>(
@@ -103,6 +117,7 @@ export const jobsApi = {
     location?: string;
     job_type?: JobType;
     is_remote?: boolean;
+    posted_by_me?: boolean;
     skip?: number;
     limit?: number;
   }): Promise<JobListItem[]> {
@@ -112,6 +127,8 @@ export const jobsApi = {
     if (params?.job_type) qs.set("job_type", params.job_type);
     if (params?.is_remote !== undefined)
       qs.set("is_remote", String(params.is_remote));
+    if (params?.posted_by_me)
+      qs.set("posted_by_me", String(params.posted_by_me));
     if (params?.skip !== undefined) qs.set("skip", String(params.skip));
     if (params?.limit !== undefined) qs.set("limit", String(params.limit));
     return apiFetch(`/jobs?${qs}`);
@@ -131,6 +148,29 @@ export const jobsApi = {
 
   close(id: string, token: string): Promise<void> {
     return apiFetch(`/jobs/${id}`, { method: "DELETE" }, token);
+  },
+};
+
+// ─── Uploads API ───────────────────────────────────────────────────────────
+
+export const uploadsApi = {
+  upload(file: File, token: string): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return fetch(`${API_URL}/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Upload failed (${res.status})`);
+      }
+      return res.json();
+    });
   },
 };
 
@@ -158,13 +198,13 @@ export const companiesApi = {
 export const applicationsApi = {
   apply(
     jobId: string,
-    data: { cover_letter?: string },
+    data: { cover_letter?: string; resume_url?: string },
     token: string
   ): Promise<Application> {
     return apiFetch(`/jobs/${jobId}/apply`, { method: "POST", body: JSON.stringify(data) }, token);
   },
 
-  listForJob(jobId: string, token: string): Promise<Application[]> {
+  listForJob(jobId: string, token: string): Promise<ApplicationWithStudent[]> {
     return apiFetch(`/jobs/${jobId}/applications`, {}, token);
   },
 
@@ -182,5 +222,21 @@ export const applicationsApi = {
       { method: "PATCH", body: JSON.stringify({ status }) },
       token
     );
+  },
+};
+
+// ─── Saved Jobs API ────────────────────────────────────────────────────────
+
+export const savedJobsApi = {
+  save(jobId: string, token: string): Promise<void> {
+    return apiFetch(`/jobs/${jobId}/save`, { method: "POST" }, token);
+  },
+
+  unsave(jobId: string, token: string): Promise<void> {
+    return apiFetch(`/jobs/${jobId}/save`, { method: "DELETE" }, token);
+  },
+
+  list(token: string): Promise<JobListItem[]> {
+    return apiFetch("/me/saved-jobs", {}, token);
   },
 };

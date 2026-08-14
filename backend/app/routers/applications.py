@@ -68,7 +68,9 @@ async def apply_to_job(
     return application
 
 
-@router.get("/jobs/{job_id}/applications", response_model=List[ApplicationRead])
+from app.schemas.job import ApplicationReadWithStudent
+
+@router.get("/jobs/{job_id}/applications", response_model=List[ApplicationReadWithStudent])
 async def list_job_applications(
     job_id: UUID,
     current_user: User = Depends(get_current_user),
@@ -87,6 +89,7 @@ async def list_job_applications(
 
     result = await db.execute(
         select(JobApplication)
+        .options(selectinload(JobApplication.student))
         .where(JobApplication.job_id == job_id)
         .order_by(JobApplication.applied_at.desc())
     )

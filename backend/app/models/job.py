@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Table,
     Text,
     text,
 )
@@ -43,6 +44,20 @@ class ApplicationStatus(str, Enum):
 
 
 # ─── Models ───────────────────────────────────────────────────────────────────
+
+saved_jobs = Table(
+    "saved_jobs",
+    Base.metadata,
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("job_id", UUID(as_uuid=True), ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "created_at",
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        server_default=text("now()"),
+        nullable=False,
+    )
+)
 
 class Company(Base):
     """Employer company profile."""
@@ -119,6 +134,7 @@ class Job(Base):
     company = relationship("Company", back_populates="jobs")
     poster = relationship("User", foreign_keys=[posted_by], back_populates="posted_jobs")
     applications = relationship("JobApplication", back_populates="job", cascade="all, delete-orphan")
+    saved_by = relationship("User", secondary="saved_jobs", back_populates="saved_jobs")
 
 
 class JobApplication(Base):

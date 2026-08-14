@@ -10,6 +10,8 @@ import {
   Menu,
   X,
   User,
+  Settings,
+  ChevronDown
 } from "lucide-react"
 
 export default function Navbar() {
@@ -17,11 +19,13 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const handleLogout = () => {
     logout()
-    navigate("/")
     setMobileOpen(false)
+    setDropdownOpen(false)
+    window.location.href = "/" // Force hard refresh to clear all React state
   }
 
   const isActive = (path: string) =>
@@ -75,15 +79,6 @@ export default function Navbar() {
           {!isLoading && (
             user ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
-                    {user.first_name[0]}{user.last_name[0]}
-                  </div>
-                  <span className="font-medium">{user.first_name}</span>
-                  <span className="text-muted-foreground text-xs capitalize px-1.5 py-0.5 bg-background rounded-full border">
-                    {user.role}
-                  </span>
-                </div>
                 {user.role === "employer" && (
                   <Link to="/post-job">
                     <Button size="sm" className="gap-1.5">
@@ -91,15 +86,61 @@ export default function Navbar() {
                     </Button>
                   </Link>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="gap-1.5 text-muted-foreground"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Log out
-                </Button>
+                
+                {/* Profile Dropdown Container */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    onBlur={() => setTimeout(() => setDropdownOpen(false), 200)}
+                    className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted/30 hover:bg-muted transition-colors border border-transparent hover:border-border cursor-pointer focus:outline-none"
+                    title="Account Options"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                      {user.first_name[0]}{user.last_name[0]}
+                    </div>
+                    <div className="flex flex-col items-start pr-1 hidden lg:flex">
+                      <span className="text-sm font-medium leading-tight">{user.first_name}</span>
+                      <span className="text-[10px] text-muted-foreground capitalize leading-tight">{user.role}</span>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground ml-1 hidden lg:block" />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {dropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-background border rounded-lg shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="px-3 py-2 border-b lg:hidden">
+                        <p className="text-sm font-medium">{user.first_name} {user.last_name}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                      </div>
+                      
+                      <Link 
+                        to="/dashboard" 
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Dashboard
+                      </Link>
+                      
+                      <Link 
+                        to="/settings" 
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Settings
+                      </Link>
+                      
+                      <div className="border-t my-1"></div>
+                      
+                      <button 
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors w-full text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Log out
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <>
@@ -161,9 +202,16 @@ export default function Navbar() {
                   <span className="font-medium">{user.first_name} {user.last_name}</span>
                   <span className="text-xs text-muted-foreground capitalize">({user.role})</span>
                 </div>
+                <Link
+                  to="/settings"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground py-2"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Settings className="w-4 h-4" /> Settings
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground py-1"
+                  className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 py-2 w-full text-left"
                 >
                   <LogOut className="w-4 h-4" /> Log out
                 </button>

@@ -114,6 +114,12 @@ class ApplicationRead(BaseModel):
 
     model_config = {"from_attributes": True}
 
+from app.schemas.user import UserRead
+
+class ApplicationReadWithStudent(ApplicationRead):
+    """For employer's job applications view — includes student info."""
+    student: UserRead
+
 
 class ApplicationReadWithJob(ApplicationRead):
     """For student's 'my applications' view — includes job info."""

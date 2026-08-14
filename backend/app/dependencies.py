@@ -38,3 +38,18 @@ async def get_current_user(
         raise UnauthorizedException(detail="Inactive user")
         
     return user
+
+async def get_optional_current_user(
+    token: str | None = Depends(OAuth2PasswordBearer(tokenUrl="api/auth/login", auto_error=False)),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Dependency to optionally get the current authenticated user.
+    Returns None if no token is provided or invalid.
+    """
+    if not token:
+        return None
+    try:
+        return await get_current_user(token, db)
+    except Exception:
+        return None

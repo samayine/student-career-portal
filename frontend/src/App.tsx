@@ -10,6 +10,8 @@ import Jobs from "@/pages/Jobs"
 import JobDetail from "@/pages/JobDetail"
 import Dashboard from "@/pages/Dashboard"
 import PostJob from "@/pages/PostJob"
+import EmployerJobView from "@/pages/EmployerJobView"
+import Settings from "@/pages/Settings"
 
 export default function App() {
   return (
@@ -35,6 +37,14 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Protected — employers only */}
               <Route
@@ -42,6 +52,14 @@ export default function App() {
                 element={
                   <ProtectedRoute role="employer">
                     <PostJob />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employer/jobs/:id"
+                element={
+                  <ProtectedRoute role="employer">
+                    <EmployerJobView />
                   </ProtectedRoute>
                 }
               />

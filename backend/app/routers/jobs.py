@@ -2,13 +2,13 @@ from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.dependencies import get_current_user
-from app.models.job import Company, Job, JobApplication, JobStatus, JobType
+from app.dependencies import get_current_user, get_optional_current_user
+from app.models.job import Company, Job, JobApplication, JobStatus, JobType, saved_jobs
 from app.models.user import User, UserRole
 from app.schemas.job import (
     CompanyCreate,
@@ -51,7 +51,9 @@ async def create_company(
         raise ForbiddenException(detail="Only employers can create a company profile")
 
     # Check if employer already has a company
-    if current_user.company:
+    stmt = select(Company).where(Company.owner_id == current_user.id)
+    result = await db.execute(stmt)
+    if result.scalar_one_or_none():
         raise BadRequestException(detail="You already have a company profile")
 
     company = Company(**company_in.model_dump(), owner_id=current_user.id)
@@ -87,16 +89,21 @@ async def list_jobs(
     location: Optional[str] = Query(None),
     job_type: Optional[JobType] = Query(None),
     is_remote: Optional[bool] = Query(None),
+    posted_by_me: Optional[bool] = Query(False),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """List active jobs with optional filters."""
     q = (
         select(Job)
         .options(selectinload(Job.company), selectinload(Job.applications))
-        .where(Job.status == JobStatus.ACTIVE)
     )
+    
+    # Only filter by ACTIVE if we aren't specifically asking for our own jobs
+    if not posted_by_me:
+        q = q.where(Job.status == JobStatus.ACTIVE)
 
     if keyword:
         q = q.where(
@@ -108,6 +115,8 @@ async def list_jobs(
         q = q.where(Job.job_type == job_type)
     if is_remote is not None:
         q = q.where(Job.is_remote == is_remote)
+    if posted_by_me and current_user:
+        q = q.where(Job.posted_by == current_user.id)
 
     q = q.order_by(Job.created_at.desc()).offset(skip).limit(limit)
     result = await db.execute(q)
@@ -200,3 +209,68 @@ async def delete_job(
 
     job.status = JobStatus.CLOSED
     await db.commit()
+
+
+# ─── Save / Bookmark Jobs (Students) ─────────────────────────────────────────
+
+me_router = APIRouter(prefix="/me", tags=["Me"])
+
+
+@router.post("/{job_id}/save", status_code=status.HTTP_204_NO_CONTENT)
+async def save_job(
+    job_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Bookmark a job. Students only."""
+    if current_user.role != UserRole.STUDENT:
+        raise ForbiddenException(detail="Only students can save jobs")
+    job = await _get_job_or_404(job_id, db)
+
+    # Check if already saved
+    result = await db.execute(
+        select(saved_jobs).where(
+            saved_jobs.c.user_id == current_user.id,
+            saved_jobs.c.job_id == job.id,
+        )
+    )
+    if result.first():
+        return  # already saved, idempotent
+
+    await db.execute(saved_jobs.insert().values(user_id=current_user.id, job_id=job.id))
+    await db.commit()
+
+
+@router.delete("/{job_id}/save", status_code=status.HTTP_204_NO_CONTENT)
+async def unsave_job(
+    job_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Remove a job bookmark."""
+    await db.execute(
+        delete(saved_jobs).where(
+            saved_jobs.c.user_id == current_user.id,
+            saved_jobs.c.job_id == job_id,
+        )
+    )
+    await db.commit()
+
+
+@me_router.get("/saved-jobs", response_model=List[JobListItem])
+async def list_saved_jobs(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get all jobs bookmarked by the current student."""
+    result = await db.execute(
+        select(Job)
+        .join(saved_jobs, saved_jobs.c.job_id == Job.id)
+        .options(selectinload(Job.company), selectinload(Job.applications))
+        .where(saved_jobs.c.user_id == current_user.id)
+        .order_by(saved_jobs.c.created_at.desc())
+    )
+    jobs = result.scalars().all()
+    for job in jobs:
+        job.application_count = len(job.applications)
+    return jobs

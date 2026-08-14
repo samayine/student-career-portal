@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
-import { jobsApi, companiesApi, type Company, type JobType } from "@/api/jobs"
+import { jobsApi, companiesApi, uploadsApi, type Company, type JobType } from "@/api/jobs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -26,6 +26,7 @@ function CreateCompanyForm({ onCreated }: { onCreated: (c: Company) => void }) {
   const [form, setForm] = useState({
     name: "", description: "", website: "", location: "", industry: "",
   })
+  const [logoFile, setLogoFile] = useState<File | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -38,8 +39,13 @@ function CreateCompanyForm({ onCreated }: { onCreated: (c: Company) => void }) {
     setIsLoading(true)
     setError("")
     try {
+      let logo_url = null;
+      if (logoFile) {
+        const { url } = await uploadsApi.upload(logoFile, token)
+        logo_url = url;
+      }
       const company = await companiesApi.create(
-        { ...form, logo_url: null },
+        { ...form, logo_url },
         token
       )
       onCreated(company)
@@ -67,6 +73,16 @@ function CreateCompanyForm({ onCreated }: { onCreated: (c: Company) => void }) {
       )}
 
       <form onSubmit={submit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="logo">Company Logo</Label>
+          <input 
+            id="logo"
+            type="file" 
+            accept="image/*"
+            onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+            className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/40 dark:file:text-blue-300 dark:hover:file:bg-blue-900/60"
+          />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="name">Company Name *</Label>
           <Input id="name" name="name" required value={form.name} onChange={handle} placeholder="Acme Corp" />

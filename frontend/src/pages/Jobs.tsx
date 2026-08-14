@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Link } from "react-router-dom"
-import { jobsApi, type JobListItem, type JobType } from "@/api/jobs"
+import { jobsApi, savedJobsApi, type JobListItem, type JobType } from "@/api/jobs"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -13,6 +14,8 @@ import {
   Briefcase,
   SlidersHorizontal,
   X,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react"
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -76,9 +79,21 @@ function SkeletonCard() {
 
 // ─── Job Card ──────────────────────────────────────────────────────────────
 
-function JobCard({ job }: { job: JobListItem }) {
+function JobCard({ job, isSaved, onToggleSave }: {
+  job: JobListItem
+  isSaved?: boolean
+  onToggleSave?: (jobId: string, save: boolean) => void
+}) {
   const salary = formatSalary(job.salary_min, job.salary_max)
   const initials = job.company.name.slice(0, 2).toUpperCase()
+  const { user } = useAuth()
+  const isStudent = user?.role === "student"
+
+  const handleBookmark = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (onToggleSave) onToggleSave(job.id, !isSaved)
+  }
 
   return (
     <Link
@@ -109,9 +124,24 @@ function JobCard({ job }: { job: JobListItem }) {
           </div>
         </div>
 
-        <span className="text-xs text-muted-foreground flex-shrink-0">
-          {timeAgo(job.created_at)}
-        </span>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isStudent && onToggleSave && (
+            <button
+              onClick={handleBookmark}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isSaved
+                  ? "text-blue-600 bg-blue-50 dark:bg-blue-900/30"
+                  : "text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              }`}
+              title={isSaved ? "Remove bookmark" : "Save job"}
+            >
+              {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+            </button>
+          )}
+          <span className="text-xs text-muted-foreground">
+            {timeAgo(job.created_at)}
+          </span>
+        </div>
       </div>
 
       {/* Meta row */}
@@ -150,12 +180,17 @@ function JobCard({ job }: { job: JobListItem }) {
   )
 }
 
+export { JobCard }
+
 // ─── Jobs Page ─────────────────────────────────────────────────────────────
 
 export default function Jobs() {
+  const { user, token } = useAuth()
+  const isStudent = user?.role === "student"
   const [jobs, setJobs] = useState<JobListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
 
   // Filter state
   const [keyword, setKeyword] = useState("")
@@ -182,6 +217,15 @@ export default function Jobs() {
     }
   }, [keyword, location, jobType, remoteOnly])
 
+  // Load saved jobs for bookmark state
+  useEffect(() => {
+    if (token && isStudent) {
+      savedJobsApi.list(token)
+        .then((saved) => setSavedIds(new Set(saved.map((j) => j.id))))
+        .catch(() => {})
+    }
+  }, [token, isStudent])
+
   // Debounce keyword/location changes
   useEffect(() => {
     const timer = setTimeout(fetchJobs, 300)
@@ -193,6 +237,26 @@ export default function Jobs() {
     setLocation("")
     setJobType("")
     setRemoteOnly(false)
+  }
+
+  const handleToggleSave = async (jobId: string, save: boolean) => {
+    if (!token) return
+    setSavedIds((prev) => {
+      const next = new Set(prev)
+      save ? next.add(jobId) : next.delete(jobId)
+      return next
+    })
+    try {
+      if (save) await savedJobsApi.save(jobId, token)
+      else await savedJobsApi.unsave(jobId, token)
+    } catch {
+      // revert on error
+      setSavedIds((prev) => {
+        const next = new Set(prev)
+        save ? next.delete(jobId) : next.add(jobId)
+        return next
+      })
+    }
   }
 
   const hasFilters = keyword || location || jobType || remoteOnly
@@ -351,7 +415,12 @@ export default function Jobs() {
         ) : (
           <div className="grid gap-4">
             {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobCard
+                key={job.id}
+                job={job}
+                isSaved={savedIds.has(job.id)}
+                onToggleSave={isStudent ? handleToggleSave : undefined}
+              />
             ))}
           </div>
         )}

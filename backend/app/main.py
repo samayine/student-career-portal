@@ -71,11 +71,16 @@ async def api_health():
     return {"status": "ok"}
 
 # ── API Routers ───────────────────────────────────────────────
+from app.routers import auth, jobs, applications, uploads, users
 from app.routers.auth import router as auth_router
-from app.routers.jobs import router as jobs_router, company_router
+from app.routers.jobs import router as jobs_router, company_router, me_router
 from app.routers.applications import router as applications_router
+from app.routers.uploads import router as uploads_router
 
-app.include_router(auth_router, prefix="/api")
-app.include_router(jobs_router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
+app.include_router(jobs.router, prefix="/api")
 app.include_router(company_router, prefix="/api")
+app.include_router(me_router, prefix="/api")
 app.include_router(applications_router, prefix="/api")
+app.include_router(uploads_router, prefix="/api")

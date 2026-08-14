@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (data: any) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,8 +57,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("token");
   };
 
+  const refreshSession = async () => {
+    if (token) {
+      try {
+        const userData = await authApi.getMe(token);
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to refresh session", error);
+      }
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

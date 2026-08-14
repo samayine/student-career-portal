@@ -25,7 +25,7 @@ export default function Navbar() {
     logout()
     setMobileOpen(false)
     setDropdownOpen(false)
-    window.location.href = "/" // Force hard refresh to clear all React state
+    window.location.href = "/login" // Force hard refresh to clear all React state and go to login
   }
 
   const isActive = (path: string) =>

@@ -118,9 +118,8 @@ export const jobsApi = {
     job_type?: JobType;
     is_remote?: boolean;
     posted_by_me?: boolean;
-    skip?: number;
     limit?: number;
-  }): Promise<JobListItem[]> {
+  }, token?: string): Promise<JobListItem[]> {
     const qs = new URLSearchParams();
     if (params?.keyword) qs.set("keyword", params.keyword);
     if (params?.location) qs.set("location", params.location);
@@ -131,7 +130,7 @@ export const jobsApi = {
       qs.set("posted_by_me", String(params.posted_by_me));
     if (params?.skip !== undefined) qs.set("skip", String(params.skip));
     if (params?.limit !== undefined) qs.set("limit", String(params.limit));
-    return apiFetch(`/jobs?${qs}`);
+    return apiFetch(`/jobs?${qs}`, {}, token);
   },
 
   get(id: string): Promise<Job> {

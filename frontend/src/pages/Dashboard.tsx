@@ -428,7 +428,7 @@ function EmployerDashboard() {
     // Load only jobs posted by the employer
     if (!token) return
     jobsApi
-      .list({ limit: 50, posted_by_me: true })
+      .list({ limit: 50, posted_by_me: true }, token)
       .then(setJobs)
       .catch(console.error)
       .finally(() => setIsLoading(false))

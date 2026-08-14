@@ -1,24 +1,56 @@
-# Environment files
+# Environment & Secret files
 .env
-.env.local
-*.env
+.env.*
+!.env.example
+!*.env.example
 
-# Python / Backend
-backend/.venv/
-backend/venv/
-backend/__pycache__/
-backend/*.py[cod]
+# Databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Backend / Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+uploads/
 backend/uploads/
-backend/.pytest_cache/
 
-# Node / Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/dist-ssr/
-*.log
+# Frontend / Node & Vite
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# IDE & OS
+# IDEs & Editors
 .vscode/
+!.vscode/extensions.json
 .idea/
-.DS_Store
 *.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Operating System
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

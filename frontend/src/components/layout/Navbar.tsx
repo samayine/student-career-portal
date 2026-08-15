@@ -49,7 +49,10 @@ export default function Navbar() {
         <Link
           to="/"
           className="text-xl font-extrabold tracking-tight flex items-center gap-2 shrink-0"
-          onClick={() => setMobileOpen(false)}
+          onClick={() => {
+            setMobileOpen(false)
+            window.scrollTo(0, 0)
+          }}
         >
           <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
             <Briefcase className="w-4 h-4 text-white" />

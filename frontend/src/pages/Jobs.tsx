@@ -3,12 +3,10 @@ import { Link } from "react-router-dom"
 import { jobsApi, savedJobsApi, type JobListItem, type JobType } from "@/api/jobs"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Search,
   MapPin,
   Building2,
-  Clock,
   Wifi,
   DollarSign,
   Briefcase,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { jobsApi, applicationsApi, savedJobsApi, type JobListItem, type ApplicationWithJob } from "@/api/jobs"
 import { Button } from "@/components/ui/button"
@@ -7,7 +7,6 @@ import {
   Briefcase,
   Users,
   Plus,
-  MapPin,
   Clock,
   CheckCircle2,
   XCircle,
@@ -70,12 +69,11 @@ function timeAgo(dateStr: string): string {
 
 // ─── Student Profile Tab ─────────────────────────────────────────────────────
 
-import { usersApi, type StudentProfile, type ProfileUpdateData } from "@/api/users"
+import { usersApi, type ProfileUpdateData } from "@/api/users"
 import { uploadsApi } from "@/api/jobs"
 
 function StudentProfileTab() {
   const { token } = useAuth()
-  const [profile, setProfile] = useState<StudentProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   
@@ -92,7 +90,6 @@ function StudentProfileTab() {
     usersApi.getMyProfile(token)
       .then((user) => {
         if (user.profile) {
-          setProfile(user.profile)
           setForm({
             bio: user.profile.bio || "",
             education: user.profile.education || "",
@@ -118,7 +115,6 @@ function StudentProfileTab() {
       }
       
       const updated = await usersApi.updateMyProfile({ ...form, default_resume_url: finalResumeUrl }, token)
-      setProfile(updated)
       setForm(p => ({ ...p, default_resume_url: updated.default_resume_url || "" }))
       setResumeFile(null)
       alert("Profile updated successfully!")
@@ -522,7 +518,6 @@ function EmployerDashboard() {
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const navigate = useNavigate()
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-muted/20 py-8 px-4">

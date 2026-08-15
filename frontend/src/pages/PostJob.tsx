@@ -9,7 +9,6 @@ import {
   Briefcase,
   Building2,
   Plus,
-  CheckCircle2,
 } from "lucide-react"
 
 const JOB_TYPES: { value: JobType; label: string }[] = [

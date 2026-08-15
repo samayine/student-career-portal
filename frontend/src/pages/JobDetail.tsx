@@ -7,10 +7,8 @@ import { Button } from "@/components/ui/button"
 import {
   MapPin,
   Building2,
-  Clock,
   DollarSign,
   Briefcase,
-  Wifi,
   Globe,
   Users,
   ArrowLeft,

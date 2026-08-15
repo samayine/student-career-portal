@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Briefcase, GraduationCap, Building2, TrendingUp, CheckCircle2, Search, Send, Zap } from "lucide-react"
+import { ArrowRight, GraduationCap, Building2, TrendingUp, Search, Send, Zap } from "lucide-react"
 
 function AnimatedCounter({ end, suffix = "", duration = 2000 }: { end: number, suffix?: string, duration?: number }) {
   const [count, setCount] = useState(0)

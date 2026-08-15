@@ -118,6 +118,7 @@ export const jobsApi = {
     job_type?: JobType;
     is_remote?: boolean;
     posted_by_me?: boolean;
+    skip?: number;
     limit?: number;
   }, token?: string): Promise<JobListItem[]> {
     const qs = new URLSearchParams();
@@ -197,7 +198,7 @@ export const companiesApi = {
 export const applicationsApi = {
   apply(
     jobId: string,
-    data: { cover_letter?: string; resume_url?: string },
+    data: { cover_letter?: string; resume_url?: string | null },
     token: string
   ): Promise<Application> {
     return apiFetch(`/jobs/${jobId}/apply`, { method: "POST", body: JSON.stringify(data) }, token);

@@ -152,12 +152,14 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-blue-600 to-indigo-700 text-white text-center">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to jumpstart your career?</h2>
-          <p className="text-blue-100 text-lg mb-10">Join thousands of students who have already found their dream internships and entry-level roles through our platform.</p>
+      <section className="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-gray-900 text-white text-center relative overflow-hidden">
+        {/* Subtle accent glow — not aggressive */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(99,102,241,0.12)_0%,_transparent_70%)] pointer-events-none" />
+        <div className="container mx-auto px-4 max-w-3xl relative">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Ready to jumpstart your career?</h2>
+          <p className="text-slate-300 text-lg mb-10">Join thousands of students who have already found their dream internships and entry-level roles through our platform.</p>
           <Link to="/register">
-            <Button size="lg" className="h-14 px-10 rounded-full text-lg font-bold bg-white text-blue-700 hover:bg-gray-100 hover:text-blue-800 border-0 shadow-lg hover:shadow-xl transition-all">
+            <Button size="lg" className="h-14 px-10 rounded-full text-lg font-bold bg-indigo-500 hover:bg-indigo-400 text-white border-0 shadow-lg hover:shadow-indigo-500/30 hover:shadow-xl transition-all">
               Create Your Free Account
             </Button>
           </Link>

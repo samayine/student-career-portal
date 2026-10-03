@@ -15,6 +15,11 @@ import {
   ChevronRight,
   Building2,
   Bookmark,
+  TrendingUp,
+  FileText,
+  Upload,
+  GraduationCap,
+  Sparkles,
 } from "lucide-react"
 import { JobCard } from "./Jobs"
 
@@ -22,31 +27,36 @@ import { JobCard } from "./Jobs"
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; color: string; icon: React.ReactNode }
+  { label: string; color: string; bg: string; icon: React.ReactNode }
 > = {
   applied: {
     label: "Applied",
-    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+    color: "text-status-applied",
+    bg: "bg-status-applied/10 border-status-applied/25",
     icon: <Clock className="w-3.5 h-3.5" />,
   },
   reviewed: {
     label: "Under Review",
-    color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300",
+    color: "text-status-reviewed",
+    bg: "bg-status-reviewed/10 border-status-reviewed/25",
     icon: <Eye className="w-3.5 h-3.5" />,
   },
   shortlisted: {
     label: "Shortlisted",
-    color: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+    color: "text-status-shortlisted",
+    bg: "bg-status-shortlisted/10 border-status-shortlisted/25",
     icon: <Star className="w-3.5 h-3.5" />,
   },
   rejected: {
     label: "Not Selected",
-    color: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+    color: "text-status-rejected",
+    bg: "bg-status-rejected/10 border-status-rejected/25",
     icon: <XCircle className="w-3.5 h-3.5" />,
   },
   accepted: {
     label: "Accepted 🎉",
-    color: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
+    color: "text-status-accepted",
+    bg: "bg-status-accepted/10 border-status-accepted/25",
     icon: <CheckCircle2 className="w-3.5 h-3.5" />,
   },
 }
@@ -126,62 +136,85 @@ function StudentProfileTab() {
   }
 
   if (isLoading) {
-    return <div className="py-8 flex justify-center"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+    return (
+      <div className="py-12 flex justify-center">
+        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (
-    <div className="bg-card border rounded-2xl p-6">
-      <h2 className="text-xl font-bold mb-6">My Profile</h2>
-      <form onSubmit={handleSave} className="space-y-5">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Bio</label>
+    <div className="bg-card border border-border/20 rounded-2xl shadow-lg overflow-hidden">
+      <div className="px-6 py-5 border-b border-border/10 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
+          <GraduationCap className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h2 className="font-heading text-headline-sm font-bold text-foreground">My Profile</h2>
+          <p className="text-label-sm text-muted-foreground">Keep your profile updated for best results</p>
+        </div>
+      </div>
+      <form onSubmit={handleSave} className="p-6 space-y-5">
+        <div className="space-y-1.5">
+          <label className="text-label-md font-semibold text-foreground">Bio</label>
           <textarea
             value={form.bio}
             onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
             rows={4}
-            className="w-full px-3 py-2 rounded-xl border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 rounded-xl border border-border/20 bg-[hsl(var(--surface-lowest))] text-body-md text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground/50 transition-all"
             placeholder="Tell us a little about yourself..."
           />
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Education</label>
+        <div className="space-y-1.5">
+          <label className="text-label-md font-semibold text-foreground">Education</label>
           <input
             type="text"
             value={form.education}
             onChange={e => setForm(p => ({ ...p, education: e.target.value }))}
-            className="w-full h-10 px-3 rounded-xl border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full h-11 px-4 rounded-xl border border-border/20 bg-[hsl(var(--surface-lowest))] text-body-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground/50 transition-all"
             placeholder="e.g. B.S. Computer Science, University of Technology"
           />
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Skills</label>
+        <div className="space-y-1.5">
+          <label className="text-label-md font-semibold text-foreground">Skills</label>
           <input
             type="text"
             value={form.skills}
             onChange={e => setForm(p => ({ ...p, skills: e.target.value }))}
-            className="w-full h-10 px-3 rounded-xl border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full h-11 px-4 rounded-xl border border-border/20 bg-[hsl(var(--surface-lowest))] text-body-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground/50 transition-all"
             placeholder="e.g. Python, React, TypeScript"
           />
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Default Resume (PDF)</label>
-          <div className="flex flex-col gap-2">
+        <div className="space-y-1.5">
+          <label className="text-label-md font-semibold text-foreground">Default Resume (PDF)</label>
+          <div className="flex flex-col gap-3">
             {form.default_resume_url && !resumeFile && (
-               <a href={`http://localhost:8000${form.default_resume_url}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-sm hover:underline">
+               <a href={`http://localhost:8000${form.default_resume_url}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary text-label-md hover:underline underline-offset-4">
+                 <FileText className="w-4 h-4" />
                  View Current Resume
                </a>
             )}
-            <input 
-              type="file" 
-              accept="application/pdf"
-              onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-              className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
+            <label className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-border/30 bg-[hsl(var(--surface-lowest))] cursor-pointer hover:border-primary/40 transition-colors">
+              <Upload className="w-5 h-5 text-muted-foreground" />
+              <span className="text-body-sm text-muted-foreground">{resumeFile ? resumeFile.name : "Choose a PDF file..."}</span>
+              <input 
+                type="file" 
+                accept="application/pdf"
+                onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                className="sr-only"
+              />
+            </label>
           </div>
         </div>
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? "Saving..." : "Save Profile"}
-        </Button>
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="px-6 py-2.5 bg-primary-container hover:bg-primary-container/90 text-white font-semibold text-label-md rounded-xl transition-all disabled:opacity-50 shadow-sm"
+          >
+            {isSaving ? "Saving..." : "Save Profile"}
+          </button>
+        </div>
       </form>
     </div>
   )
@@ -244,48 +277,56 @@ function StudentDashboard() {
     accepted: applications.filter((a) => a.status === "accepted").length,
   }
 
+  const tabs = [
+    { key: "applications" as const, label: "Applications", icon: Briefcase },
+    { key: "saved" as const, label: "Saved", icon: Bookmark, count: savedJobs.length },
+    { key: "profile" as const, label: "Profile", icon: GraduationCap },
+  ]
+
   return (
     <div className="space-y-6">
-      {/* Tabs */}
-      <div className="flex space-x-1 border-b">
-        <button
-          className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
-            activeTab === "applications"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={() => setActiveTab("applications")}
-        >
-          My Applications
-        </button>
-        <button
-          className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
-            activeTab === "saved"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={() => setActiveTab("saved")}
-        >
-          <span className="flex items-center gap-1.5">
-            <Bookmark className="w-3.5 h-3.5" />
-            Saved Jobs
-            {savedJobs.length > 0 && (
-              <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold px-1.5 py-0.5 rounded-full">
-                {savedJobs.length}
+      {/* Stats row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: "Total Applied", value: stats.total, icon: Briefcase, accent: "from-primary/20 to-primary/5", iconColor: "text-primary", borderColor: "border-primary/20" },
+          { label: "In Progress", value: stats.active, icon: TrendingUp, accent: "from-secondary/20 to-secondary/5", iconColor: "text-secondary", borderColor: "border-secondary/20" },
+          { label: "Accepted", value: stats.accepted, icon: CheckCircle2, accent: "from-status-accepted/20 to-status-accepted/5", iconColor: "text-status-accepted", borderColor: "border-status-accepted/20" },
+        ].map((stat) => (
+          <div key={stat.label} className={`bg-gradient-to-br ${stat.accent} rounded-2xl p-5 border ${stat.borderColor} shadow-sm`}>
+            <div className="flex items-center justify-between mb-3">
+              <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
+              <span className="text-label-sm text-muted-foreground uppercase tracking-wider">{stat.label}</span>
+            </div>
+            <p className="font-heading text-display-sm font-bold text-foreground tracking-tight">{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Tab navigation */}
+      <div className="bg-card rounded-xl p-1.5 border border-border/20 shadow-sm flex gap-1">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-label-md font-semibold transition-all flex-1 justify-center ${
+              activeTab === tab.key
+                ? "bg-primary-container text-white shadow-md"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+            {tab.count !== undefined && tab.count > 0 && (
+              <span className={`text-label-sm px-1.5 py-0.5 rounded-full ${
+                activeTab === tab.key
+                  ? "bg-white/25"
+                  : "bg-primary/15 text-primary"
+              }`}>
+                {tab.count}
               </span>
             )}
-          </span>
-        </button>
-        <button
-          className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
-            activeTab === "profile"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={() => setActiveTab("profile")}
-        >
-          My Profile
-        </button>
+          </button>
+        ))}
       </div>
 
       {activeTab === "profile" ? (
@@ -293,13 +334,19 @@ function StudentDashboard() {
       ) : activeTab === "saved" ? (
         <div className="space-y-4">
           {savedJobs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center border rounded-2xl bg-card">
-              <Bookmark className="w-10 h-10 text-muted-foreground mb-3" />
-              <h3 className="font-semibold mb-1">No saved jobs</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+            <div className="flex flex-col items-center justify-center py-16 text-center border border-border/20 rounded-2xl bg-card shadow-sm">
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <Bookmark className="w-7 h-7 text-muted-foreground" />
+              </div>
+              <h3 className="font-heading text-headline-sm font-semibold mb-1 text-foreground">No saved jobs</h3>
+              <p className="text-body-sm text-muted-foreground mb-5 max-w-xs">
                 Bookmark jobs you&apos;re interested in to find them here later.
               </p>
-              <Link to="/jobs"><Button size="sm">Browse Jobs</Button></Link>
+              <Link to="/jobs">
+                <button className="px-5 py-2 bg-primary-container hover:bg-primary-container/90 text-white text-label-md font-semibold rounded-xl transition-all shadow-sm">
+                  Browse Jobs
+                </button>
+              </Link>
             </div>
           ) : (
             <div className="grid gap-4">
@@ -316,46 +363,36 @@ function StudentDashboard() {
         </div>
       ) : (
         <>
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { label: "Total Applied", value: stats.total, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
-              { label: "In Progress", value: stats.active, color: "text-yellow-600", bg: "bg-yellow-50 dark:bg-yellow-900/20" },
-              { label: "Accepted", value: stats.accepted, color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20" },
-            ].map((stat) => (
-              <div key={stat.label} className={`${stat.bg} rounded-2xl p-5 text-center`}>
-                <p className={`text-3xl font-extrabold ${stat.color}`}>{stat.value}</p>
-                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Applications list */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">My Applications</h2>
+              <h2 className="font-heading text-headline-sm font-bold text-foreground">My Applications</h2>
               <Link to="/jobs">
-                <Button variant="outline" size="sm">
-                  <Plus className="w-3.5 h-3.5 mr-1.5" /> Browse Jobs
-                </Button>
+                <button className="flex items-center gap-1.5 px-4 py-2 bg-muted hover:bg-accent text-foreground text-label-md font-semibold rounded-xl transition-all">
+                  <Plus className="w-3.5 h-3.5" /> Browse Jobs
+                </button>
               </Link>
             </div>
 
             {isLoading ? (
               <div className="space-y-3">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-24 bg-muted rounded-2xl animate-pulse" />
+                  <div key={i} className="h-24 bg-card border border-border/20 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : applications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center border rounded-2xl bg-card">
-                <Briefcase className="w-10 h-10 text-muted-foreground mb-3" />
-                <h3 className="font-semibold mb-1">No applications yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+              <div className="flex flex-col items-center justify-center py-16 text-center border border-border/20 rounded-2xl bg-card shadow-sm">
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                  <Briefcase className="w-7 h-7 text-muted-foreground" />
+                </div>
+                <h3 className="font-heading text-headline-sm font-semibold mb-1 text-foreground">No applications yet</h3>
+                <p className="text-body-sm text-muted-foreground mb-5 max-w-xs">
                   Start applying to jobs to track your progress here.
                 </p>
                 <Link to="/jobs">
-                  <Button size="sm">Browse Jobs</Button>
+                  <button className="px-5 py-2 bg-primary-container hover:bg-primary-container/90 text-white text-label-md font-semibold rounded-xl transition-all shadow-sm">
+                    Browse Jobs
+                  </button>
                 </Link>
               </div>
             ) : (
@@ -366,39 +403,39 @@ function StudentDashboard() {
                   return (
                     <div
                       key={app.id}
-                      className="bg-card border rounded-2xl p-4 flex items-center gap-4 hover:border-blue-300 transition-colors"
+                      className="bg-card border border-border/20 rounded-2xl p-4 flex items-center gap-4 hover:border-primary/30 hover:shadow-card-hover transition-all duration-200 group"
                     >
                       {/* Logo */}
                       {app.job.company.logo_url ? (
                         <img
                           src={app.job.company.logo_url}
                           alt={app.job.company.name}
-                          className="w-10 h-10 rounded-xl object-cover border flex-shrink-0"
+                          className="w-10 h-10 rounded-xl object-cover border border-border/20 flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                           {initials}
                         </div>
                       )}
 
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate">{app.job.title}</p>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <p className="font-heading text-headline-sm font-semibold truncate text-foreground group-hover:text-primary transition-colors">{app.job.title}</p>
+                        <p className="text-body-sm text-muted-foreground flex items-center gap-1">
                           <Building2 className="w-3.5 h-3.5" />
                           {app.job.company.name}
                         </p>
                       </div>
 
                       <div className="flex items-center gap-3 flex-shrink-0">
-                        <span className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${cfg.color}`}>
+                        <span className={`flex items-center gap-1.5 text-label-sm font-semibold px-3 py-1 rounded-full border ${cfg.bg} ${cfg.color}`}>
                           {cfg.icon}
                           {cfg.label}
                         </span>
-                        <span className="text-xs text-muted-foreground hidden sm:block">
+                        <span className="text-label-sm text-muted-foreground hidden sm:block">
                           {timeAgo(app.applied_at)}
                         </span>
                         <Link to={`/jobs/${app.job_id}`}>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                         </Link>
                       </div>
                     </div>
@@ -437,12 +474,15 @@ function EmployerDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: "Active Postings", value: jobs.filter(j => j.status === "active").length, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
-          { label: "Total Applicants", value: totalApplicants, color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20" },
+          { label: "Active Postings", value: jobs.filter(j => j.status === "active").length, icon: Briefcase, accent: "from-primary/20 to-primary/5", iconColor: "text-primary", borderColor: "border-primary/20" },
+          { label: "Total Applicants", value: totalApplicants, icon: Users, accent: "from-secondary/20 to-secondary/5", iconColor: "text-secondary", borderColor: "border-secondary/20" },
         ].map((stat) => (
-          <div key={stat.label} className={`${stat.bg} rounded-2xl p-5 text-center`}>
-            <p className={`text-3xl font-extrabold ${stat.color}`}>{stat.value}</p>
-            <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+          <div key={stat.label} className={`bg-gradient-to-br ${stat.accent} rounded-2xl p-5 border ${stat.borderColor} shadow-sm`}>
+            <div className="flex items-center justify-between mb-3">
+              <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
+              <span className="text-label-sm text-muted-foreground uppercase tracking-wider">{stat.label}</span>
+            </div>
+            <p className="font-heading text-display-sm font-bold text-foreground tracking-tight">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -450,29 +490,33 @@ function EmployerDashboard() {
       {/* Posted jobs */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">Your Job Postings</h2>
+          <h2 className="font-heading text-headline-sm font-bold text-foreground">Your Job Postings</h2>
           <Link to="/post-job">
-            <Button size="sm">
-              <Plus className="w-3.5 h-3.5 mr-1.5" /> Post a Job
-            </Button>
+            <button className="flex items-center gap-1.5 px-4 py-2 bg-primary-container hover:bg-primary-container/90 text-white text-label-md font-semibold rounded-xl transition-all shadow-sm">
+              <Plus className="w-3.5 h-3.5" /> Post a Job
+            </button>
           </Link>
         </div>
 
         {isLoading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-20 bg-muted rounded-2xl animate-pulse" />
+              <div key={i} className="h-20 bg-card border border-border/20 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : jobs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center border rounded-2xl bg-card">
-            <Briefcase className="w-10 h-10 text-muted-foreground mb-3" />
-            <h3 className="font-semibold mb-1">No job postings yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+          <div className="flex flex-col items-center justify-center py-16 text-center border border-border/20 rounded-2xl bg-card shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+              <Briefcase className="w-7 h-7 text-muted-foreground" />
+            </div>
+            <h3 className="font-heading text-headline-sm font-semibold mb-1 text-foreground">No job postings yet</h3>
+            <p className="text-body-sm text-muted-foreground mb-5 max-w-xs">
               Create your first job posting to start receiving applications.
             </p>
             <Link to="/post-job">
-              <Button size="sm">Post a Job</Button>
+              <button className="px-5 py-2 bg-primary-container hover:bg-primary-container/90 text-white text-label-md font-semibold rounded-xl transition-all shadow-sm">
+                Post a Job
+              </button>
             </Link>
           </div>
         ) : (
@@ -480,29 +524,29 @@ function EmployerDashboard() {
             {jobs.map((job) => (
               <div
                 key={job.id}
-                className="bg-card border rounded-2xl p-4 flex items-center gap-4"
+                className="bg-card border border-border/20 rounded-2xl p-4 flex items-center gap-4 hover:border-primary/30 hover:shadow-card-hover transition-all duration-200 group"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold truncate">{job.title}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-heading text-headline-sm font-semibold truncate text-foreground group-hover:text-primary transition-colors">{job.title}</p>
+                  <p className="text-body-sm text-muted-foreground">
                     {JOB_TYPE_LABELS[job.job_type]}
                     {job.location && ` · ${job.location}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-4 flex-shrink-0">
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5 text-body-sm text-muted-foreground">
                     <Users className="w-4 h-4" />
                     {job.application_count}
                   </div>
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                  <span className={`text-label-sm font-semibold px-3 py-1 rounded-full border ${
                     job.status === "active"
-                      ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
-                      : "bg-muted text-muted-foreground"
+                      ? "bg-status-accepted/10 text-status-accepted border-status-accepted/25"
+                      : "bg-muted text-muted-foreground border-border/20"
                   }`}>
                     {job.status === "active" ? "Active" : "Closed"}
                   </span>
                   <Link to={`/employer/jobs/${job.id}`}>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </Link>
                 </div>
               </div>
@@ -520,16 +564,26 @@ export default function Dashboard() {
   const { user } = useAuth()
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-muted/20 py-8 px-4">
-      <div className="container mx-auto max-w-3xl">
+    <div className="min-h-[calc(100vh-4rem)] bg-background pt-16">
+      <div className="max-w-[900px] mx-auto px-6 py-8">
         {/* Welcome header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-extrabold">
-            Welcome back, {user?.first_name}! 👋
-          </h1>
-          <p className="text-muted-foreground mt-1 capitalize">
-            {user?.role} Dashboard
-          </p>
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <Sparkles className="w-4 h-4 text-secondary" />
+              <span className="text-label-sm text-secondary uppercase tracking-wider font-semibold">
+                {user?.role === "employer" ? "Employer" : "Student"} Command Center
+              </span>
+            </div>
+            <h1 className="font-heading text-headline-lg text-foreground tracking-tight">
+              Welcome back, {user?.first_name}!
+            </h1>
+            <p className="text-body-md text-muted-foreground mt-0.5">
+              {user?.role === "employer"
+                ? "Manage your postings and review applicants."
+                : "Track your applications and discover new opportunities."}
+            </p>
+          </div>
         </div>
 
         {user?.role === "student" ? (

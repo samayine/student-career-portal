@@ -15,6 +15,12 @@ import {
   CheckCircle2,
   ExternalLink,
   Calendar,
+  Clock,
+  Upload,
+  Bookmark,
+  Share2,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react"
 
 const JOB_TYPE_LABELS: Record<string, string> = {
@@ -39,15 +45,26 @@ function formatDate(dateStr?: string | null): string {
   })
 }
 
+function daysUntil(dateStr?: string | null): string | null {
+  if (!dateStr) return null
+  const diff = Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000)
+  if (diff < 0) return "Expired"
+  if (diff === 0) return "Today"
+  if (diff === 1) return "1 day left"
+  return `${diff} days left`
+}
+
 // ─── Apply Modal ───────────────────────────────────────────────────────────
 
 function ApplyModal({
   jobTitle,
+  companyName,
   onClose,
   onSubmit,
   isLoading,
 }: {
   jobTitle: string
+  companyName: string
   onClose: () => void
   onSubmit: (coverLetter: string, resumeFile: File | null, defaultResumeUrl?: string | null) => void
   isLoading: boolean
@@ -68,34 +85,47 @@ function ApplyModal({
     }
   }, [token])
 
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    return () => { document.body.style.overflow = "" }
+  }, [])
+
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-      style={{ backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(4px)" }}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div 
-        className="border shadow-2xl rounded-2xl p-6 sm:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto relative"
-        style={{ backgroundColor: "#ffffff", color: "#111827" }}
+      <div
+        className="bg-card border border-border/20 shadow-2xl rounded-2xl p-6 sm:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-1" style={{ color: "#111827" }}>Apply for this position</h2>
-        <p className="mb-6" style={{ color: "#6b7280" }}>{jobTitle}</p>
-
-        <div className="space-y-5">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
           <div>
-            <label className="block text-sm font-semibold mb-2" style={{ color: "#111827" }}>
-              Resume (PDF) <span className="text-red-500">*</span>
+            <h2 className="font-heading text-headline-sm font-bold text-foreground">Apply for this position</h2>
+            <p className="text-body-sm text-muted-foreground">{jobTitle} at {companyName}</p>
+          </div>
+        </div>
+
+        <div className="space-y-5 mt-6">
+          {/* Resume */}
+          <div>
+            <label className="block text-label-md font-semibold text-foreground mb-2">
+              Resume (PDF) <span className="text-status-rejected">*</span>
             </label>
-            
+
             {defaultResumeUrl && (
-              <div className="mb-3 p-3 border rounded-xl" style={{ backgroundColor: "#f9fafb" }}>
-                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium" style={{ color: "#374151" }}>
-                  <input 
-                    type="checkbox" 
+              <div className="mb-3 p-3 border border-border/20 rounded-xl bg-[hsl(var(--surface-lowest))]">
+                <label className="flex items-center gap-2 cursor-pointer text-body-sm font-medium text-foreground">
+                  <input
+                    type="checkbox"
                     checked={useDefaultResume}
                     onChange={(e) => setUseDefaultResume(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-border accent-primary"
                   />
                   Use my default profile resume
                 </label>
@@ -103,46 +133,48 @@ function ApplyModal({
             )}
 
             {!useDefaultResume && (
-              <input 
-                type="file" 
-                accept=".pdf"
-                onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
+              <label className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-border/30 bg-[hsl(var(--surface-lowest))] cursor-pointer hover:border-primary/40 transition-colors">
+                <Upload className="w-5 h-5 text-muted-foreground" />
+                <span className="text-body-sm text-muted-foreground">
+                  {resumeFile ? resumeFile.name : "Choose a PDF file..."}
+                </span>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                  className="sr-only"
+                />
+              </label>
             )}
           </div>
 
+          {/* Cover Letter */}
           <div>
-            <label className="block text-sm font-semibold mb-2" style={{ color: "#111827" }}>
-              Cover Letter <span style={{ color: "#9ca3af", fontWeight: 400 }}>(optional)</span>
+            <label className="block text-label-md font-semibold text-foreground mb-2">
+              Cover Letter <span className="text-muted-foreground font-normal">(optional)</span>
             </label>
             <textarea
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
               placeholder="Tell the employer why you're a great fit for this role..."
-              className="w-full h-40 px-4 py-3 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              style={{ backgroundColor: "#f9fafb", border: "1px solid #e5e7eb", color: "#111827" }}
+              className="w-full h-40 px-4 py-3 rounded-xl border border-border/20 bg-[hsl(var(--surface-lowest))] text-body-sm text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground/50 transition-all"
             />
           </div>
         </div>
 
         <div className="flex flex-col-reverse sm:flex-row gap-3 mt-8">
-          <button 
+          <button
             type="button"
-            className="sm:w-1/3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
-            style={{ backgroundColor: "#f3f4f6", color: "#374151", border: "1px solid #e5e7eb" }}
-            onClick={onClose} 
+            className="sm:w-1/3 px-4 py-2.5 rounded-xl text-label-md font-semibold bg-muted hover:bg-accent text-foreground border border-border/20 transition-colors"
+            onClick={onClose}
             disabled={isLoading}
           >
             Cancel
           </button>
-          <button 
+          <button
             type="button"
-            className="sm:w-2/3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-            style={{ backgroundColor: "#2563eb", color: "#ffffff", border: "none" }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#1d4ed8")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#2563eb")}
-            onClick={() => onSubmit(coverLetter, useDefaultResume ? null : resumeFile, useDefaultResume ? defaultResumeUrl : undefined)} 
+            className="sm:w-2/3 px-4 py-2.5 rounded-xl text-label-md font-semibold bg-primary-container hover:bg-primary-container/90 text-white transition-colors disabled:opacity-50 shadow-sm"
+            onClick={() => onSubmit(coverLetter, useDefaultResume ? null : resumeFile, useDefaultResume ? defaultResumeUrl : undefined)}
             disabled={isLoading || (!resumeFile && !useDefaultResume)}
           >
             {isLoading ? "Submitting Application..." : "Submit Application"}
@@ -198,24 +230,28 @@ export default function JobDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-[calc(100vh-4rem)] bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   if (error || !job) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center gap-4">
-        <h2 className="text-xl font-semibold">Job not found</h2>
-        <Button variant="outline" onClick={() => navigate("/jobs")}>
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Jobs
-        </Button>
+      <div className="min-h-[calc(100vh-4rem)] bg-background flex flex-col items-center justify-center gap-4">
+        <h2 className="font-heading text-headline-md font-semibold text-foreground">Job not found</h2>
+        <button
+          onClick={() => navigate("/jobs")}
+          className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-accent text-foreground text-label-md font-semibold rounded-xl transition-colors border border-border/20"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Jobs
+        </button>
       </div>
     )
   }
 
   const salary = formatSalary(job.salary_min, job.salary_max)
+  const deadline = daysUntil(job.deadline)
   const initials = job.company.name.slice(0, 2).toUpperCase()
 
   return (
@@ -223,91 +259,119 @@ export default function JobDetail() {
       {showApplyModal && (
         <ApplyModal
           jobTitle={job.title}
+          companyName={job.company.name}
           onClose={() => setShowApplyModal(false)}
           onSubmit={handleApply}
           isLoading={isApplying}
         />
       )}
 
-      <div className="min-h-[calc(100vh-4rem)] bg-muted/20 py-8 px-4">
-        <div className="container mx-auto max-w-5xl">
-          {/* Back */}
-          <Link
-            to="/jobs"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Jobs
-          </Link>
+      <div className="min-h-[calc(100vh-4rem)] bg-background pt-16">
+        <div className="relative max-w-[1200px] mx-auto px-6 py-8">
+          {/* Background orbs */}
+          <div className="absolute -top-24 -left-20 w-96 h-96 bg-primary-container/10 rounded-full blur-3xl pointer-events-none -z-10" />
+          <div className="absolute top-1/3 -right-20 w-[450px] h-[450px] bg-secondary-container/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
-          <div className="grid lg:grid-cols-[1fr_320px] gap-6">
-            {/* Main content */}
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-label-md text-muted-foreground mb-6">
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+            <ChevronRight className="w-3.5 h-3.5 opacity-50" />
+            <Link to="/jobs" className="hover:text-primary transition-colors">Jobs</Link>
+            <ChevronRight className="w-3.5 h-3.5 opacity-50" />
+            <span className="text-foreground font-medium truncate max-w-[200px]">{job.title}</span>
+          </nav>
+
+          <div className="grid lg:grid-cols-[1fr_360px] gap-8">
+            {/* ─── Main content ─── */}
             <div className="space-y-6">
               {/* Header card */}
-              <div className="bg-card border rounded-2xl p-6">
+              <div className="bg-card border border-border/20 rounded-2xl p-6 shadow-lg">
                 <div className="flex items-start gap-4">
                   {job.company.logo_url ? (
                     <img
                       src={job.company.logo_url}
                       alt={job.company.name}
-                      className="w-16 h-16 rounded-2xl object-cover border flex-shrink-0"
+                      className="w-16 h-16 rounded-2xl object-cover border border-border/20 flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-sm">
                       {initials}
                     </div>
                   )}
-                  <div>
-                    <h1 className="text-2xl font-extrabold">{job.title}</h1>
-                    <p className="text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="font-heading text-headline-lg font-bold text-foreground tracking-tight">{job.title}</h1>
+                    <p className="text-body-md text-muted-foreground mt-0.5 flex items-center gap-1.5">
                       <Building2 className="w-4 h-4" />
                       {job.company.name}
                     </p>
                   </div>
                 </div>
 
-                {/* Meta chips */}
-                <div className="flex flex-wrap gap-3 mt-5 text-sm">
+                {/* Meta pills */}
+                <div className="flex flex-wrap gap-3 mt-5">
                   {(job.location || job.is_remote) && (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[hsl(var(--surface-lowest))] border border-border/10 text-body-sm text-muted-foreground">
+                      <MapPin className="w-3.5 h-3.5" />
                       {job.is_remote ? "Remote" : job.location}
-                    </div>
+                    </span>
                   )}
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Briefcase className="w-4 h-4" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[hsl(var(--surface-lowest))] border border-border/10 text-body-sm text-muted-foreground">
+                    <Briefcase className="w-3.5 h-3.5" />
                     {JOB_TYPE_LABELS[job.job_type]}
-                  </div>
+                  </span>
                   {salary && (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <DollarSign className="w-4 h-4" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-status-accepted/10 border border-status-accepted/20 text-body-sm text-status-accepted font-medium">
+                      <DollarSign className="w-3.5 h-3.5" />
                       {salary}
-                    </div>
+                    </span>
                   )}
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Users className="w-4 h-4" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[hsl(var(--surface-lowest))] border border-border/10 text-body-sm text-muted-foreground">
+                    <Users className="w-3.5 h-3.5" />
                     {job.application_count} applicant{job.application_count !== 1 ? "s" : ""}
-                  </div>
-                  {job.deadline && (
-                    <div className="flex items-center gap-1.5 text-orange-600">
-                      <Calendar className="w-4 h-4" />
-                      Deadline: {formatDate(job.deadline)}
-                    </div>
+                  </span>
+                  {deadline && (
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-body-sm font-medium ${
+                      deadline === "Expired"
+                        ? "bg-status-rejected/10 border-status-rejected/20 text-status-rejected"
+                        : "bg-status-reviewed/10 border-status-reviewed/20 text-status-reviewed"
+                    }`}>
+                      <Calendar className="w-3.5 h-3.5" />
+                      {deadline === "Expired" ? "Deadline passed" : deadline}
+                    </span>
                   )}
                 </div>
 
+                {/* Actions row for mobile */}
+                <div className="flex gap-3 mt-5 lg:hidden">
+                  {user?.role === "student" && !applied ? (
+                    <button
+                      className="flex-1 px-4 py-2.5 bg-primary-container hover:bg-primary-container/90 text-white text-label-md font-semibold rounded-xl transition-all shadow-sm"
+                      onClick={() => setShowApplyModal(true)}
+                    >
+                      Apply Now
+                    </button>
+                  ) : null}
+                  <button className="px-3 py-2.5 bg-muted hover:bg-accent text-foreground rounded-xl border border-border/20 transition-colors">
+                    <Bookmark className="w-4 h-4" />
+                  </button>
+                  <button className="px-3 py-2.5 bg-muted hover:bg-accent text-foreground rounded-xl border border-border/20 transition-colors">
+                    <Share2 className="w-4 h-4" />
+                  </button>
+                </div>
+
                 {applyError && (
-                  <div className="mt-4 p-3 rounded-xl bg-destructive/10 text-destructive text-sm">
+                  <div className="mt-4 p-3 rounded-xl bg-status-rejected/10 border border-status-rejected/20 text-status-rejected text-body-sm">
                     {applyError}
                   </div>
                 )}
               </div>
 
               {/* Description */}
-              <div className="bg-card border rounded-2xl p-6">
-                <h2 className="text-lg font-bold mb-4">Job Description</h2>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
+              <div className="bg-card border border-border/20 rounded-2xl p-6 shadow-sm">
+                <h2 className="font-heading text-headline-sm font-bold text-foreground mb-4">About This Role</h2>
+                <div className="space-y-3">
                   {job.description.split("\n").map((line, i) => (
-                    <p key={i} className="text-muted-foreground leading-relaxed mb-3 last:mb-0">
+                    <p key={i} className="text-body-md text-foreground/80 leading-relaxed">
                       {line}
                     </p>
                   ))}
@@ -316,82 +380,165 @@ export default function JobDetail() {
 
               {/* Requirements */}
               {job.requirements && (
-                <div className="bg-card border rounded-2xl p-6">
-                  <h2 className="text-lg font-bold mb-4">Requirements</h2>
-                  <div className="space-y-2">
-                    {job.requirements.split("\n").map((line, i) => (
-                      <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                <div className="bg-card border border-border/20 rounded-2xl p-6 shadow-sm">
+                  <h2 className="font-heading text-headline-sm font-bold text-foreground mb-4">Requirements</h2>
+                  <div className="space-y-2.5">
+                    {job.requirements.split("\n").filter(Boolean).map((line, i) => (
+                      <div key={i} className="flex items-start gap-3 text-body-md text-foreground/80">
+                        <CheckCircle2 className="w-4.5 h-4.5 text-status-accepted flex-shrink-0 mt-0.5" />
                         <span>{line}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* Apply CTA at bottom */}
+              {user?.role === "student" && !applied && (
+                <div className="bg-gradient-to-r from-primary-container/20 to-secondary-container/20 border border-primary-container/30 rounded-2xl p-6 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-heading text-headline-sm font-bold text-foreground">Ready to apply?</h3>
+                    <p className="text-body-sm text-muted-foreground mt-0.5">Submit your application and stand out from the crowd.</p>
+                  </div>
+                  <button
+                    className="px-6 py-2.5 bg-primary-container hover:bg-primary-container/90 text-white text-label-md font-semibold rounded-xl transition-all shadow-sm flex-shrink-0"
+                    onClick={() => setShowApplyModal(true)}
+                  >
+                    Apply Now
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Sidebar */}
+            {/* ─── Sidebar ─── */}
             <div className="space-y-4">
-              {/* Apply card */}
-              <div className="bg-card border rounded-2xl p-6 sticky top-20">
+              {/* Apply / Status card */}
+              <div className="bg-card border border-border/20 rounded-2xl p-6 shadow-lg sticky top-20">
                 {applied ? (
-                  <div className="flex flex-col items-center text-center py-2">
-                    <CheckCircle2 className="w-12 h-12 text-green-500 mb-3" />
-                    <h3 className="font-bold text-lg">Application Sent!</h3>
-                    <p className="text-muted-foreground text-sm mt-1">
+                  <div className="flex flex-col items-center text-center py-4">
+                    <div className="w-14 h-14 rounded-2xl bg-status-accepted/15 flex items-center justify-center mb-4">
+                      <CheckCircle2 className="w-8 h-8 text-status-accepted" />
+                    </div>
+                    <h3 className="font-heading text-headline-sm font-bold text-foreground">Application Sent!</h3>
+                    <p className="text-body-sm text-muted-foreground mt-2 max-w-xs">
                       The employer will review your application and get back to you.
                     </p>
-                    <Link to="/dashboard" className="mt-4 w-full">
-                      <Button variant="outline" className="w-full">View My Applications</Button>
+                    <Link to="/dashboard" className="mt-5 w-full">
+                      <button className="w-full px-4 py-2.5 bg-muted hover:bg-accent text-foreground text-label-md font-semibold rounded-xl border border-border/20 transition-colors">
+                        View My Applications
+                      </button>
                     </Link>
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Posted {formatDate(job.created_at)}
-                    </p>
-                    {user?.role === "student" ? (
-                      <Button className="w-full" size="lg" onClick={() => setShowApplyModal(true)}>
-                        Apply Now
-                      </Button>
-                    ) : user?.role === "employer" || user?.role === "admin" ? (
-                      <p className="text-center text-sm text-muted-foreground">
-                        Switch to a student account to apply.
-                      </p>
-                    ) : (
-                      <div className="space-y-2">
-                        <Link to="/register">
-                          <Button className="w-full">Sign up to Apply</Button>
-                        </Link>
-                        <Link to="/login">
-                          <Button variant="outline" className="w-full">Log in</Button>
-                        </Link>
+                    {/* Job Summary */}
+                    <h3 className="font-heading text-headline-sm font-bold text-foreground mb-4">Job Summary</h3>
+                    <div className="space-y-3 text-body-sm">
+                      {salary && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground flex items-center gap-2"><DollarSign className="w-4 h-4" /> Salary</span>
+                          <span className="font-semibold text-foreground">{salary}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-2"><Briefcase className="w-4 h-4" /> Type</span>
+                        <span className="font-semibold text-foreground">{JOB_TYPE_LABELS[job.job_type]}</span>
                       </div>
-                    )}
+                      {(job.location || job.is_remote) && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground flex items-center gap-2"><MapPin className="w-4 h-4" /> Location</span>
+                          <span className="font-semibold text-foreground">{job.is_remote ? "Remote" : job.location}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-2"><Users className="w-4 h-4" /> Applicants</span>
+                        <span className="font-semibold text-foreground">{job.application_count}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-2"><Clock className="w-4 h-4" /> Posted</span>
+                        <span className="font-semibold text-foreground">{formatDate(job.created_at)}</span>
+                      </div>
+                      {job.deadline && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4" /> Deadline</span>
+                          <span className="font-semibold text-foreground">{formatDate(job.deadline)}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t border-border/10 mt-5 pt-5 space-y-3">
+                      {user?.role === "student" ? (
+                        <button
+                          className="w-full px-4 py-3 bg-primary-container hover:bg-primary-container/90 text-white text-label-md font-semibold rounded-xl transition-all shadow-sm"
+                          onClick={() => setShowApplyModal(true)}
+                        >
+                          Apply Now
+                        </button>
+                      ) : user?.role === "employer" || user?.role === "admin" ? (
+                        <p className="text-center text-body-sm text-muted-foreground py-2">
+                          Switch to a student account to apply.
+                        </p>
+                      ) : (
+                        <>
+                          <Link to="/register">
+                            <button className="w-full px-4 py-3 bg-primary-container hover:bg-primary-container/90 text-white text-label-md font-semibold rounded-xl transition-all shadow-sm">
+                              Sign up to Apply
+                            </button>
+                          </Link>
+                          <Link to="/login">
+                            <button className="w-full px-4 py-2.5 bg-muted hover:bg-accent text-foreground text-label-md font-semibold rounded-xl border border-border/20 transition-colors">
+                              Log in
+                            </button>
+                          </Link>
+                        </>
+                      )}
+                      <div className="flex gap-2">
+                        <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-muted hover:bg-accent text-foreground text-label-sm font-medium rounded-xl border border-border/20 transition-colors">
+                          <Bookmark className="w-4 h-4" /> Save
+                        </button>
+                        <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-muted hover:bg-accent text-foreground text-label-sm font-medium rounded-xl border border-border/20 transition-colors">
+                          <Share2 className="w-4 h-4" /> Share
+                        </button>
+                      </div>
+                    </div>
                   </>
                 )}
               </div>
 
               {/* Company card */}
-              <div className="bg-card border rounded-2xl p-6">
-                <h3 className="font-bold mb-3">About the Company</h3>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p className="font-medium text-foreground">{job.company.name}</p>
-                  {job.company.industry && <p>{job.company.industry}</p>}
+              <div className="bg-card border border-border/20 rounded-2xl p-6 shadow-sm">
+                <h3 className="font-heading text-headline-sm font-bold text-foreground mb-4">About the Company</h3>
+                <div className="flex items-center gap-3 mb-4">
+                  {job.company.logo_url ? (
+                    <img src={job.company.logo_url} alt={job.company.name} className="w-12 h-12 rounded-xl object-cover border border-border/20" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white font-bold text-sm">
+                      {initials}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-heading text-headline-sm font-semibold text-foreground">{job.company.name}</p>
+                    {job.company.industry && (
+                      <span className="text-label-sm text-muted-foreground">{job.company.industry}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-body-sm text-muted-foreground">
                   {job.company.location && (
-                    <p className="flex items-center gap-1.5">
+                    <p className="flex items-center gap-2">
                       <MapPin className="w-3.5 h-3.5" /> {job.company.location}
                     </p>
                   )}
                   {job.company.description && (
-                    <p className="leading-relaxed pt-1">{job.company.description}</p>
+                    <p className="leading-relaxed pt-1 text-foreground/70">{job.company.description}</p>
                   )}
                   {job.company.website && (
                     <a
                       href={job.company.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-blue-600 hover:underline pt-1"
+                      className="flex items-center gap-1.5 text-primary hover:underline underline-offset-4 pt-2"
                     >
                       <Globe className="w-3.5 h-3.5" />
                       Visit website

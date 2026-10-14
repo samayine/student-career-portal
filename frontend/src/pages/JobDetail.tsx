@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from "react-router-dom"
 import { jobsApi, applicationsApi, uploadsApi, type Job } from "@/api/jobs"
 import { usersApi } from "@/api/users"
 import { useAuth } from "@/contexts/AuthContext"
-import { Button } from "@/components/ui/button"
 import {
   MapPin,
   Building2,

@@ -8,12 +8,10 @@ import {
   type ApplicationWithStudent,
   type ApplicationStatus,
 } from "@/api/jobs"
-import { Button } from "@/components/ui/button"
 import {
   ArrowLeft,
   Users,
   FileText,
-  Download,
   Mail,
   CheckCircle2,
   XCircle,
@@ -22,7 +20,6 @@ import {
   Star,
   ChevronDown,
   MapPin,
-  Briefcase,
   ExternalLink,
 } from "lucide-react"
 

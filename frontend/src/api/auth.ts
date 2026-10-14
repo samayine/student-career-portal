@@ -61,4 +61,8 @@ export const authApi = {
     
     return response.json();
   },
+
+  getOAuthUrl(provider: "google" | "github", role: string = "student"): string {
+    return `${API_URL}/auth/oauth/${provider}/authorize?role=${encodeURIComponent(role)}`;
+  },
 };

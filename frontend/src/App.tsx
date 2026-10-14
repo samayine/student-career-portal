@@ -15,6 +15,8 @@ import EmployerJobView from "@/pages/EmployerJobView"
 import Settings from "@/pages/Settings"
 import TermsOfService from "@/pages/TermsOfService"
 import PrivacyPolicy from "@/pages/PrivacyPolicy"
+import OAuthCallback from "@/pages/OAuthCallback"
+import NotFound from "@/pages/NotFound"
 
 export default function App() {
   return (
@@ -28,6 +30,7 @@ export default function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/auth/callback" element={<OAuthCallback />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/jobs/:id" element={<JobDetail />} />
               <Route path="/terms" element={<TermsOfService />} />
@@ -68,6 +71,9 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* 404 Catch-All */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <Footer />
